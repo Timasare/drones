@@ -1,0 +1,56 @@
+% Define swarm parameters
+num_drones = 10; % Number of drones in the swarm
+leader_index = 1; % Index of the leader drone
+desired_formation = 'V'; % Desired formation ('V', 'Line', 'Circle')
+
+% Initialize drone positions
+drone_positions = zeros(num_drones, 3); % x, y, z coordinates of each drone
+
+% Define leader's desired position
+leader_desired_position = [0, 0, 10]; % x, y, z coordinates
+
+% Initialize leader's position
+drone_positions(leader_index, :) = leader_desired_position;
+
+% Simulation parameters
+dt = 0.1; % Time step (seconds)
+t_end = 60; % Simulation time (seconds)
+t = 0:dt:t_end; % Time vector (seconds)
+
+% Simulation loop
+for i = 1:length(t)
+    % Update leader's position
+    leader_desired_position = leader_desired_position + [0.5, 0, 0]; % Move leader forward
+
+    % Update drone positions based on leader-follower approach
+    for j = 1:num_drones
+        if j ~= leader_index % Check if drone is not the leader
+            % Calculate distance to leader
+            distance = drone_positions(leader_index, :) - drone_positions(j, :);
+
+            % Calculate desired position based on formation type
+            if desired_formation == 'V'
+                desired_position = drone_positions(leader_index, :) + [0, j * 5, 0]; % V-shaped formation
+            elseif desired_formation == 'Line'
+                desired_position = drone_positions(leader_index, :) + [j * 5, 0, 0]; % Line formation
+            elseif desired_formation == 'Circle'
+                radius = 10;
+                angle = 2 * pi * j / num_drones;
+                desired_position = drone_positions(leader_index, :) + [radius * cos(angle), radius * sin(angle), 0]; % Circular formation
+            end
+
+            % Calculate control signal
+            control_signal = desired_position - drone_positions(j, :);
+
+            % Update drone's position
+            drone_positions(j, :) = drone_positions(j, :) + control_signal * dt;
+        end
+    end
+
+    % Plot drone positions
+    plot3(drone_positions(:, 1), drone_positions(:, 2), drone_positions(:, 3), 'o');
+    hold on;
+    plot3(drone_positions(leader_index, 1), drone_positions(leader_index, 2), drone_positions(leader_index, 3), 'x');
+    hold off;
+    drawnow;
+end
